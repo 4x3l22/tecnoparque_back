@@ -8,3 +8,5 @@ json/
 *.pyc
 *.pyo
 .env
+*.idea/
+*.venv
