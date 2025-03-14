@@ -1,0 +1,10 @@
+# Ignorar archivos de pycache
+__pycache__/
+
+# Ignorar contenido de la carpeta json
+json/
+# Ignorar carpetas de pycache
+**/__pycache__/
+*.pyc
+*.pyo
+.env
