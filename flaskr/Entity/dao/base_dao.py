@@ -89,3 +89,49 @@ class BaseRepository:
             raise Exception(f"Error al actualizar {table_name}: {e}")
         finally:
             cursor.close()
+
+    def delete(self, table_name: str, id_field: str, id_value):
+        """
+        Realiza un borrado lógico en una tabla colocando la fecha de eliminación.
+
+        :param table_name: Nombre de la tabla donde se hará el borrado lógico.
+        :param id_field: Nombre del campo que identifica el registro (ej. 'id_vista').
+        :param id_value: Valor del identificador del registro a eliminar.
+        :return: True si la operación fue exitosa, False en caso contrario.
+        """
+        fecha_eliminacion = obtener_hora_actual()  # Obtener la fecha actual
+        query = f"""
+        UPDATE {table_name} 
+        SET fecha_eliminacion = %s 
+        WHERE {id_field} = %s
+        """
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query, (fecha_eliminacion, id_value))
+            self.connection.commit()
+            return cursor.rowcount > 0  # Devuelve True si se actualizó alguna fila
+        except Exception as e:
+            self.connection.rollback()
+            raise Exception(f"Error al realizar el borrado lógico en {table_name}: {e}")
+        finally:
+            cursor.close()
+
+    def get_all(self, table_name: str):
+        """
+        Obtiene todos los registros de una tabla.
+
+        :param table_name: Nombre de la tabla de la cual obtener los datos.
+        :return: Lista de registros como diccionarios.
+        """
+        query = f"SELECT * FROM tecnoparque.{table_name}"
+
+        try:
+            cursor = self.connection.cursor()  # Devuelve resultados como diccionarios
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            return resultados
+        except Exception as e:
+            raise Exception(f"Error al obtener datos de {table_name}: {e}")
+        finally:
+            cursor.close()

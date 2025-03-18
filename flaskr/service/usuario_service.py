@@ -28,16 +28,47 @@ class UsuarioService:
         return self.usuario_dao.insertar_usuario(new_user)
 
     def update_user(self, id_usuario, nombre=None, correo=None, contrasena=None):
-        usaurio = self.usuario_dao.get_userId(id_usuario)
+        usuario = self.usuario_dao.get_userId(id_usuario)
 
-        if not usaurio:
+        if not usuario:
             return False
 
         usuario_data = {
-            'id_usuario': id_usuario,
-            'nombre': nombre if nombre else usaurio['nombre'],
-            'correo': correo if correo else usaurio['correo'],
-            'contrasena': contrasena if contrasena else usaurio['contrasena']
+            'nombre': nombre if nombre is not None else usuario['nombre'],
+            'correo': correo if correo is not None else usuario['correo'],
+            'contrasena': contrasena if contrasena is not None else usuario['contrasena'],
+            'fecha_creacion': usuario['fecha_creacion'], 
+            'fecha_actualizacion': obtener_hora_actual(),
+            'fecha_eliminacion': usuario['fecha_eliminacion'] if usuario['fecha_eliminacion'] else None
         }
 
-        return
+        return self.usuario_dao.actualizar_usuario(UsuarioDTO(id_usuario=id_usuario, **usuario_data))
+    
+    def delete_user(self, id_usuario):
+        resultado = self.usuario_dao.borrar_usuario(id_usuario)
+
+        if resultado:
+            return {"message": "Usuario eliminado exitosamente"}, 200
+        else:
+            return {"error": "No se encontró el usuario o ya estaba eliminado"}, 400
+
+    def get_all_users(self):
+        try:
+            users = self.usuario_dao.get_all()
+            print("Usuarios obtenidos:", users)  # 👀 Ver qué datos devuelve el DAO
+
+            users = [
+                UsuarioDTO(
+                    id_usuario=usuario[0],
+                    nombre=usuario[1],
+                    correo=usuario[2],
+                    contrasena=usuario[3],
+                    fecha_creacion=usuario[4],
+                    fecha_actualizacion=usuario[5],
+                    fecha_eliminacion=usuario[6]
+                ) for usuario in users
+            ]
+            return users
+        except Exception as e:
+            print("Error en get_all_users:", str(e))  # 🔍 Imprimir el error exacto
+            raise

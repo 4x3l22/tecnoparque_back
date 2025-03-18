@@ -464,5 +464,199 @@ class UsuarioPostGetController(Resource):
             return {"message": "usuario register ", "id": user_id}, 201
         except Exception as e:
             return {"error": str(e)}, 500
+        
+    @swag_from({
+        'tags': ['Usuario'],
+        'summary': 'Obtener todos los usuarios',
+        'description': 'Este endpoint retorna todos los usuarios disponibles en la base de datos.',
+        'responses': {
+            200: {
+                'description': 'Lista de usuarios obtenida exitosamente',
+                'schema': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'id_usuario': {'type': 'integer'},
+                            'nombre': {'type': 'string'},
+                            'correo': {'type': 'string'},
+                            'fecha_creacion': {'type': 'string'},
+                            'fecha_actualizacion': {'type': 'string'},
+                            'fecha_eliminacion': {'type': 'string'}
+                        }
+                    }
+                }
+            },
+            500: {
+                'description': 'Error en el servidor',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'}
+                    }
+                }
+            }
+        }
+    })
+    def get(self):
+        """Endpoint para obtener todos los usuarios existentes."""
+        try:
+            users = self.service.get_all_users()
+            serialized_users = [
+                {
+                    "id_usuario": user.id_usuario,
+                    "nombre": user.nombre,
+                    "correo": user.correo,
+                    "fecha_creacion": user.fecha_creacion.isoformat() if user.fecha_creacion else None,
+                    "fecha_actualizacion": user.fecha_actualizacion.isoformat() if user.fecha_actualizacion else None,
+                    "fecha_eliminacion": user.fecha_eliminacion.isoformat() if user.fecha_eliminacion else None
+                }
+                for user in users
+            ]
+            return serialized_users, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
 
 class UsuarioPutController(Resource):
+    def __init__(self):
+        self.service = UsuarioService()
+
+    @swag_from({
+        'tags': ['Usuario'],
+        'summary': 'Actualizar un usuario existente',
+        'description': 'Este endpoint permite actualizar los datos de un usuario existente.',
+        'parameters': [
+            {
+                'name': 'id_usuario',
+                'in': 'path',
+                'type': 'integer',
+                'required': True,
+                'description': 'ID del usuario a actualizar'
+            },
+            {
+                'name': 'body',
+                'in': 'body',
+                'required': True,
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'nombre': {'type': 'string', 'description': 'Nuevo nombre del usuario'},
+                        'correo': {'type': 'string', 'description': 'Nuevo correo del usuario'},
+                        'contrasena': {'type': 'string', 'description': 'Nueva contraseña del usuario'}
+                    }
+                }
+            }
+        ],
+        'responses': {
+            200: {
+                'description': 'Usuario actualizado exitosamente',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            },
+            400: {
+                'description': 'Solicitud incorrecta - Faltan datos requeridos',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'}
+                    }
+                }
+            },
+            404: {
+                'description': 'Usuario no encontrado',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'}
+                    }
+                }
+            },
+            500: {
+                'description': 'Error en el servidor',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'}
+                    }
+                }
+            }
+        }
+    })
+    def put(self, id_usuario):
+        """Endpoint para actualizar un usuario existente."""
+        data = request.get_json()
+
+        if not data or not any(k in data for k in ("nombre", "correo", "contrasena")):
+            return {"error": "Se requiere al menos un campo para actualizar"}, 400
+
+        try:
+            actualizado = self.service.update_user(
+                id_usuario=id_usuario,
+                nombre=data.get("nombre"),
+                correo=data.get("correo"),
+                contrasena=data.get("contrasena")
+            )
+
+            if actualizado:
+                return {"message": "Usuario actualizado exitosamente"}, 200
+            else:
+                return {"error": "Usuario no encontrado"}, 404
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+    @swag_from({
+        'tags': ['Usuario'],
+        'summary': 'Eliminar un usuario',
+        'description': 'Este endpoint realiza un borrado lógico marcando la fecha de eliminación en la base de datos.',
+        'parameters': [
+            {
+                'name': 'id_usuario',
+                'in': 'path',
+                'type': 'integer',
+                'required': True,
+                'description': 'ID del usuario a eliminar'
+            }
+        ],
+        'responses': {
+            200: {
+                'description': 'Usuario eliminado exitosamente',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            },
+            400: {
+                'description': 'Solicitud incorrecta - ID inválido',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'}
+                    }
+                }
+            },
+            500: {
+                'description': 'Error en el servidor',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'}
+                    }
+                }
+            }
+        }
+    })
+    def delete(self, id_usuario):
+        """Realiza un borrado lógico de un usuario."""
+        try:
+            response, status_code = self.service.delete_user(id_usuario)
+            return response, status_code
+        except ValueError as e:
+            return {"error": str(e)}, 400
+        except Exception as e:
+            return {"error": str(e)}, 500

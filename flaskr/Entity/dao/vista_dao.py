@@ -35,7 +35,7 @@ class VistaDAO:
 
     def obtener_todas_las_vistas(self):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM vistas")
+        cursor.execute("SELECT * FROM tecnoparque.vistas")
         vistas = cursor.fetchall()
         cursor.close()
         return vistas

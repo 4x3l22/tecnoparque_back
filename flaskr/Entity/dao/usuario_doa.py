@@ -32,5 +32,11 @@ class UsuarioDao(BaseRepository):
             'correo': usuario.correo,
             'contrasena': usuario.contrasena,
             'fecha_actualizacion': usuario.fecha_actualizacion,
-            'fecha_eliminacion': usuario.fecha_eliminacion if usuario.fecha_eliminacion else 'null'
+            'fecha_eliminacion': usuario.fecha_eliminacion
         },'id_usuario', usuario.id_usuario)
+    
+    def borrar_usuario(self, user_id):
+        return self.delete('usuario', 'id_usuario', user_id)
+    
+    def obtener_todos(self):
+        return self.get_all("usuarios")
