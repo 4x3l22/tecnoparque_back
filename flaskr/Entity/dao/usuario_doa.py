@@ -26,4 +26,11 @@ class UsuarioDao(BaseRepository):
     def get_userId(self, user_id):
         return self.obtener_por_id('usuario','id_usuario',user_id)
 
-    
+    def actualizar_usuario(self, usuario: UsuarioDTO):
+        return self.update('usuario',{
+            'nombre': usuario.nombre,
+            'correo': usuario.correo,
+            'contrasena': usuario.contrasena,
+            'fecha_actualizacion': usuario.fecha_actualizacion,
+            'fecha_eliminacion': usuario.fecha_eliminacion if usuario.fecha_eliminacion else 'null'
+        },'id_usuario', usuario.id_usuario)

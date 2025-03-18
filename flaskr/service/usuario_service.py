@@ -26,3 +26,18 @@ class UsuarioService:
         )
 
         return self.usuario_dao.insertar_usuario(new_user)
+
+    def update_user(self, id_usuario, nombre=None, correo=None, contrasena=None):
+        usaurio = self.usuario_dao.get_userId(id_usuario)
+
+        if not usaurio:
+            return False
+
+        usuario_data = {
+            'id_usuario': id_usuario,
+            'nombre': nombre if nombre else usaurio['nombre'],
+            'correo': correo if correo else usaurio['correo'],
+            'contrasena': contrasena if contrasena else usaurio['contrasena']
+        }
+
+        return

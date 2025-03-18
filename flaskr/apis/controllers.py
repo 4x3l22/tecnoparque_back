@@ -464,3 +464,5 @@ class UsuarioPostGetController(Resource):
             return {"message": "usuario register ", "id": user_id}, 201
         except Exception as e:
             return {"error": str(e)}, 500
+
+class UsuarioPutController(Resource):
