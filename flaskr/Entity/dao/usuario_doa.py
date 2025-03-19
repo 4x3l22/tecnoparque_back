@@ -38,5 +38,15 @@ class UsuarioDao(BaseRepository):
     def borrar_usuario(self, user_id):
         return self.delete('usuario', 'id_usuario', user_id)
     
-    def obtener_todos(self):
-        return self.get_all("usuarios")
+    def obtener_todos_los_usuarios(self):
+        return self.obtener_todos('usuario')
+    
+    def obtener_usuario_por_correo(self, correo):
+        query = "SELECT * FROM usuario WHERE correo = %s"
+        params = (correo,)
+
+        resultado = self.execute_query(query, params)
+
+        # Verificar si hay resultados y devolver solo el primero
+        return resultado[0] if resultado else None  
+
