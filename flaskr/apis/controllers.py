@@ -465,4 +465,4 @@ class UsuarioPostGetController(Resource):
         except Exception as e:
             return {"error": str(e)}, 500
 
-class UsuarioPutController(Resource):
+# class UsuarioPutController(Resource):

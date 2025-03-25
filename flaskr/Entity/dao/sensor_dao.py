@@ -7,21 +7,25 @@ class SensorDAO:
         self.db = FirebaseConnection().get_db()
 
     def get_all_documents(self, collection):
-        ref = self.db.child(collection)
-        data = ref.get()
+        try:
+            # Referencia a la colección en Firebase
+            ref = self.db.child(collection)
+            data = ref.get()  # Obtén los datos
 
-        if not data:
+            # Si no hay datos, devuelve una lista vacía
+            if not data:
+                return []
+
+            # Si los datos ya son una lista, devuélvelos directamente
+            if isinstance(data, list):
+                return data
+
+            # Si los datos son un diccionario, conviértelos en lista
+            return [{**value, "id": key} for key, value in data.items()]
+        except Exception as e:
+            print(f"Error al obtener documentos: {e}")
             return []
 
-        if isinstance(data, list):  # 🔹 Si ya es una lista, ordenar directamente
-            return sorted(data, key=lambda x: x.get("timestamp", 0), reverse=True)
-
-        # 🔹 Si es un diccionario, convertirlo en lista antes de ordenar
-        documents = [{**value, "id": key} for key, value in data.items()]
-        sorted_documents = sorted(documents, key=lambda x: x.get("timestamp", 0), reverse=True)
-
-        return sorted_documents
-    
     def get_end_rows(self, collection):
         ref = self.db.child(collection)
         data = ref.get()

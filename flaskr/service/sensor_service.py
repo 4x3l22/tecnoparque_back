@@ -9,17 +9,33 @@ class FirebaseService:
         self.dao = SensorDAO()
 
     def get_sensor_data(self, collection):
-        data = self.dao.get_all_documents(collection)  # data es una lista
-        response = []
+        try:
+            # Obtener los datos de la colección
+            data = self.dao.get_all_documents(collection)  # data es una lista
+            response = []
 
-        for item in data:  # Iteramos directamente sobre la lista
-            if 'timestamp' in item:
-                item['fecha_hora'] = datetime.fromtimestamp(item['timestamp']).strftime('%Y-%m-%d %I:%M:%S %p')
+            for item in data:  # Iteramos directamente sobre la lista
+                # Convertir timestamp a fecha_hora si está disponible
+                fecha_hora = ''
+                if 'timestamp' in item:
+                    try:
+                        fecha_hora = datetime.fromtimestamp(item['timestamp']).strftime('%Y-%m-%d %I:%M:%S %p')
+                    except (ValueError, TypeError):
+                        fecha_hora = 'Fecha inválida'
 
-            dto = SensorDTO(item['humedad'], item['temperatura'], item.get('fecha_hora', ''))
-            response.append(dto.__dict__)
+                # Crear el DTO asegurando que todos los campos están presentes
+                humedad = item.get('humedad', None)
+                temperatura = item.get('temperatura', None)
 
-        return response
+                # Asegúrate de que SensorDTO acepte valores opcionales o reemplázalos con valores predeterminados
+                dto = SensorDTO(humedad, temperatura, fecha_hora)
+                response.append(dto.__dict__)  # Convierte a diccionario
+
+            return response
+
+        except Exception as e:
+            print(f"Error al obtener datos del sensor: {e}")
+            return []
     
     def get_end_rows(self, collection):
         data = self.dao.get_end_rows(collection)
