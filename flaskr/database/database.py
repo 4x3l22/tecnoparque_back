@@ -39,5 +39,3 @@ class FirebaseConnection:
     def get_db(self):
         """Retorna la instancia de la base de datos Realtime Database."""
         return self.db
-
-

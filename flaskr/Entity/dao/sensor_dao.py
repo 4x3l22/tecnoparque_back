@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from flaskr.database.database import FirebaseConnection
 
 
@@ -38,25 +38,31 @@ class SensorDAO:
 
         # 🔹 Tomar solo los últimos 5 documentos insertados
         return documents[-5:] if len(documents) > 5 else documents
-    
+
     def get_documents_by_date(self, collection, start_date, end_date):
         ref = self.db.child(collection)
         data = ref.get()
 
-        if not data:
+        if not isinstance(data, dict):  # Asegúrate de que los datos sean un diccionario
             return []
 
-        # Convertir fechas a timestamps
-        start_timestamp = datetime.strptime(start_date, "%Y-%m-%d").timestamp()
-        end_timestamp = datetime.strptime(end_date, "%Y-%m-%d").timestamp()
+        try:
+            # Convertir fechas a timestamps (en UTC)
+            start_timestamp = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=UTC).timestamp()
+            end_timestamp = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=UTC).timestamp()
+        except ValueError:
+            raise ValueError("Las fechas deben estar en el formato 'YYYY-MM-DD'")
 
-        # Convertir los documentos de diccionario a lista
-        documents = [{**value, "id": key} for key, value in data.items()]
+        # Convertir los documentos a una lista con validación de "timestamp"
+        documents = [
+            {**value, "id": key} for key, value in data.items()
+            if isinstance(value.get("timestamp", None), (int, float))
+        ]
 
-        # Filtrar los documentos por el rango de fechas
+        # Filtrar documentos por rango de fechas
         filtered_documents = [
             doc for doc in documents
-            if start_timestamp <= doc.get("timestamp", 0) <= end_timestamp
+            if start_timestamp <= doc["timestamp"] <= end_timestamp
         ]
 
         return filtered_documents

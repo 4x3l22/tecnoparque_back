@@ -1,7 +1,8 @@
 from flask import Blueprint
 from flask_restful import Api
-from .controllers import ProyectoPostGetController, ProyectoPutDeleteController, SensorController, SensorDataController, SensorunoController, UsuarioLoginController, UsuarioPutController, \
-    VistasPostGetController, VistasPutController, UsuarioPostGetController
+from .controllers import ProyectoPostGetController, ProyectoPutDeleteController, SensorController, SensorDataController, \
+    SensorunoController, UsuarioLoginController, \
+    VistasPostGetController, VistasPutController, UsuarioPostGetController, UsuarioPutController
 
 api_blueprint = Blueprint('api', __name__)
 api = Api(api_blueprint)
