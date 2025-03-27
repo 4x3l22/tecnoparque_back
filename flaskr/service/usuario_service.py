@@ -86,4 +86,4 @@ class UsuarioService:
         if not check_password_hash(usuario["contrasena"], contrasena):
             return {"error": "Contraseña incorrecta"}, 400
 
-        return {"message": "Inicio de sesión exitoso"}, 200
+        return {"message": "Inicio de sesión exitoso", "id": usuario["id_usuario"]}, 200

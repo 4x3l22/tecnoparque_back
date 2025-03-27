@@ -1,8 +1,8 @@
+from flask_cors import cross_origin
 from flask_restful import Resource
 from flasgger import Swagger, swag_from
 from flask import request, jsonify
 
-from flaskr.service import vista_service
 from flaskr.service.proyecto_service import ProyectoService
 from flaskr.service.sensor_service import FirebaseService
 from flaskr.service.usuario_service import UsuarioService
@@ -572,6 +572,7 @@ class UsuarioLoginController(Resource):
             }
         }
     })
+    @cross_origin(origins="http://localhost:4200")
     def post(self):
         """Endpoint para iniciar sesion."""
         data = request.get_json()
@@ -584,7 +585,7 @@ class UsuarioLoginController(Resource):
                 correo=data["correo"],
                 contrasena=data["contrasena"]
             )
-            return {"message": "usuario login ", "id": user_id}, 200
+            return {"message": "usuario login ", "ok": user_id}, 200
         except Exception as e:
             return {"error": str(e)}, 500
 
