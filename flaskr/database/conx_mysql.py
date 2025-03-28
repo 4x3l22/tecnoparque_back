@@ -28,4 +28,8 @@ class MySQLConnection:
 
     def get_connection(self):
         """Retorna la instancia de la conexión MySQL."""
+        if not self.connection.is_connected():
+            print("🔄 Reconectando a MySQL...")
+            self._initialize()
         return self.connection
+

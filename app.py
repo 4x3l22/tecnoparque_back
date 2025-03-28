@@ -33,6 +33,24 @@ def login():
         return {"message": "Usuario autenticado", "ok": user_id}, 200
     except Exception as e:
         return {"error": str(e)}, 500
+@app.route('/register', methods=['POST'])
+def register():
+    """Endpoint para registrar un nuevo usuario."""
+    service = UsuarioService()
+    data = request.get_json()
+
+    if not data or not all(k in data for k in ("nombre", "correo", "contrasena")):
+        return {"error": "Faltan datos requeridos"}, 400
+
+    try:
+        user_id = service.insert_usuario(
+            nombre=data["nombre"],
+            correo=data["correo"],
+            contrasena=data["contrasena"]
+        )
+        return {"message": "usuario register ", "id": user_id}, 201
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 if __name__ == '__main__':
     app.run(debug=True)
