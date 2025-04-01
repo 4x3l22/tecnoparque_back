@@ -6,7 +6,6 @@ from flask import request, jsonify
 from flaskr.service.proyecto_service import ProyectoService
 from flaskr.service.sensor_service import FirebaseService
 from flaskr.service.usuario_service import UsuarioService
-from flaskr.service.vista_service import VistaService
 
 swagger = Swagger()
 class SensorController(Resource):
@@ -129,275 +128,6 @@ class SensorDataController(Resource):
             return {'message': str(e)}, 500
 
 #Aca estan los controladores de MSQsl
-class VistasPostGetController(Resource):
-    def __init__(self):
-        self.service = VistaService()
-
-    @swag_from({
-        'tags': ['Vistas'],
-        'summary': 'Registrar una nueva vista',
-        'description': 'Este endpoint permite registrar una nueva vista en la base de datos.',
-        'parameters': [
-            {
-                'name': 'body',
-                'in': 'body',
-                'required': True,
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'descripcion': {'type': 'string', 'description': 'Descripción de la vista'},
-                        'ruta': {'type': 'string', 'description': 'Ruta de la vista'},
-                        'nombre': {'type': 'string', 'description': 'Nombre de la vista'}
-                    },
-                    'required': ['descripcion', 'ruta', 'nombre']
-                }
-            }
-        ],
-        'responses': {
-            201: {
-                'description': 'Vista creada exitosamente',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'message': {'type': 'string'},
-                        'id': {'type': 'integer'}
-                    }
-                }
-            },
-            400: {
-                'description': 'Solicitud incorrecta - Faltan datos requeridos',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            },
-            500: {
-                'description': 'Error en el servidor',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            }
-        }
-    })
-    def post(self):
-        """Endpoint para registrar una nueva vista."""
-        data = request.get_json()
-
-        if not data or not all(k in data for k in ("descripcion", "ruta", "nombre")):
-            return {"error": "Faltan datos requeridos"}, 400
-
-        try:
-            vista_id = self.service.registrar_vista(
-                descripcion=data["descripcion"],
-                ruta=data["ruta"],
-                nombre=data["nombre"]
-            )
-            return {"message": "Vista creada", "id": vista_id}, 201
-        except Exception as e:
-            return {"error": str(e)}, 500
-
-    @swag_from({
-        'tags': ['Vistas'],
-        'summary': 'Obtener todas las vistas',
-        'description': 'Este endpoint retorna todas las vistas disponibles en la base de datos.',
-        'responses': {
-            200: {
-                'description': 'Lista de vistas obtenida exitosamente',
-                'schema': {
-                    'type': 'array',
-                    'items': {
-                        'type': 'object',
-                        'properties': {
-                            'id_vista': {'type': 'integer'},
-                            'descripcion': {'type': 'string'},
-                            'fecha_creacion': {'type': 'string'},
-                            'fecha_actualizacion': {'type': 'string'},
-                            'fecha_eliminacion': {'type': 'string'},
-                            'ruta': {'type': 'string'},
-                            'nombre': {'type': 'string'}
-                        }
-                    }
-                }
-            },
-            500: {
-                'description': 'Error en el servidor',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            }
-        }
-    })
-    def get(self):
-        """Endpoint para obtener todas las vistas existentes."""
-        try:
-            vistas = self.service.obtener_todas_las_vistas()
-            serialized_vistas = [
-                {
-                    "id_vista": vista.id_vista,
-                    "descripcion": vista.descripcion,
-                    "fecha_creacion": vista.fecha_creacion.isoformat() if vista.fecha_creacion else None,
-                    "fecha_actualizacion": vista.fecha_actualizacion.isoformat() if vista.fecha_actualizacion else None,
-                    "fecha_eliminacion": vista.fecha_eliminacion.isoformat() if vista.fecha_eliminacion else None,
-                    "ruta": vista.ruta,
-                    "nombre": vista.nombre
-                }
-                for vista in vistas
-            ]
-            return serialized_vistas, 200
-        except Exception as e:
-            return {"error": str(e)}, 500
-
-class VistasPutController(Resource):
-    def __init__(self):
-        self.service = VistaService()
-
-    @swag_from({
-        'tags': ['Vistas'],
-        'summary': 'Eliminar una vista',
-        'description': 'Este endpoint realiza un borrado lógico marcando la fecha de eliminación en la base de datos.',
-        'parameters': [
-            {
-                'name': 'id_vista',
-                'in': 'path',
-                'type': 'integer',
-                'required': True,
-                'description': 'ID de la vista a eliminar'
-            }
-        ],
-        'responses': {
-            200: {
-                'description': 'Vista eliminada exitosamente',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'message': {'type': 'string'}
-                    }
-                }
-            },
-            400: {
-                'description': 'Solicitud incorrecta - ID inválido',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            },
-            500: {
-                'description': 'Error en el servidor',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            }
-        }
-    })
-    def delete(self, id_vista):
-        """Realiza un borrado lógico de una vista."""
-        try:
-            response, status_code = self.service.borrar_vista(id_vista)
-            return response, status_code
-        except ValueError as e:
-            return {"error": str(e)}, 400
-        except Exception as e:
-            return {"error": str(e)}, 500
-
-    @swag_from({
-        'tags': ['Vistas'],
-        'summary': 'Actualizar una vista existente',
-        'description': 'Este endpoint actualiza una vista sin modificar la fecha de creación.',
-        'parameters': [
-            {
-                'name': 'id_vista',
-                'in': 'path',
-                'type': 'integer',
-                'required': True,
-                'description': 'ID de la vista a actualizar'
-            },
-            {
-                'name': 'body',
-                'in': 'body',
-                'required': True,
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'descripcion': {'type': 'string', 'description': 'Nueva descripción de la vista'},
-                        'ruta': {'type': 'string', 'description': 'Nueva ruta de la vista'},
-                        'nombre': {'type': 'string', 'description': 'Nuevo nombre de la vista'}
-                    }
-                }
-            }
-        ],
-        'responses': {
-            200: {
-                'description': 'Vista actualizada exitosamente',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'message': {'type': 'string'}
-                    }
-                }
-            },
-            400: {
-                'description': 'Solicitud incorrecta - Faltan datos requeridos',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            },
-            404: {
-                'description': 'Vista no encontrada',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            },
-            500: {
-                'description': 'Error en el servidor',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                }
-            }
-        }
-    })
-    def put(self, id_vista):
-        """Actualiza una vista sin modificar la fecha de creación"""
-        data = request.json
-
-        if not data or not any(k in data for k in ("descripcion", "ruta", "nombre")):
-            return {"error": "Se requiere al menos un campo para actualizar"}, 400
-
-        try:
-            actualizado = self.service.actualizar_vista(
-                id_vista=id_vista,
-                descripcion=data.get("descripcion"),
-                ruta=data.get("ruta"),
-                nombre=data.get("nombre")
-            )
-
-            if actualizado:  # Ya no intentamos indexar un int
-                return {"message": "Vista actualizada exitosamente"}, 200
-            else:
-                return {"error": "Vista no encontrada"}, 404
-        except Exception as e:
-            return {"error": str(e)}, 500
 
 class UsuarioPostGetController(Resource):
     def __init__(self):
@@ -752,10 +482,11 @@ class ProyectoPostGetController(Resource):
                     'type': 'object',
                     'properties': {
                         'id_usuario': {'type': 'integer', 'description': 'ID del usuario'},
-                        'id_vista': {'type': 'integer', 'description': 'ID de la vista'},
-                        'nombre_proyecto': {'type': 'string', 'description': 'Nombre del proyecto'}
+                        'ruta': {'type': 'string', 'description': 'ruta del proyecto'},
+                        'nombre_proyecto': {'type': 'string', 'description': 'Nombre del proyecto'},
+                        'descripcion': {'type': 'string'}
                     },
-                    'required': ['id_usuario', 'id_vista', 'nombre_proyecto']
+                    'required': ['id_usuario', 'ruta', 'nombre_proyecto']
                 }
             }
         ],
@@ -794,14 +525,15 @@ class ProyectoPostGetController(Resource):
         """Endpoint para registrar un nuevo proyecto."""
         data = request.get_json()
 
-        if not data or not all(k in data for k in ("id_usuario", "id_vista", "nombre_proyecto")):
+        if not data or not all(k in data for k in ("id_usuario", "ruta", "nombre_proyecto")):
             return {"error": "Faltan datos requeridos"}, 400
 
         try:
             project_id = self.service.insert_proyecto(
                 id_usuario=data["id_usuario"],
-                id_vista=data["id_vista"],
-                nombre_proyecto=data["nombre_proyecto"]
+                ruta=data["ruta"],
+                nombre_proyecto=data["nombre_proyecto"],
+                descripcion=data["descripcion"]
             )
             return {"message": "Proyecto creado", "id": project_id}, 201
         except Exception as e:
@@ -821,7 +553,8 @@ class ProyectoPostGetController(Resource):
                         'properties': {
                             'id_proyecto': {'type': 'integer'},
                             'id_usuario': {'type': 'integer'},
-                            'id_vista': {'type': 'integer'},
+                            'ruta': {'type': 'string'},
+                            'descripcion': {'type': 'string'},
                             'nombre_proyecto': {'type': 'string'},
                             'fecha_creacion': {'type': 'string'},
                             'fecha_actualizacion': {'type': 'string'},
@@ -849,7 +582,8 @@ class ProyectoPostGetController(Resource):
                 {
                     "id_proyecto": project.id_proyecto,
                     "id_usuario": project.id_usuario,
-                    "id_vista": project.id_vista,
+                    "ruta": project.ruta,
+                    "descripcion": project.descripcion,
                     "nombre_proyecto": project.nombre_proyecto,
                     "fecha_creacion": project.fecha_creacion.isoformat() if project.fecha_creacion else None,
                     "fecha_actualizacion": project.fecha_actualizacion.isoformat() if project.fecha_actualizacion else None,
@@ -885,8 +619,9 @@ class ProyectoPutDeleteController(Resource):
                     'type': 'object',
                     'properties': {
                         'id_usuario': {'type': 'integer', 'description': 'Nuevo ID del usuario'},
-                        'id_vista': {'type': 'integer', 'description': 'Nuevo ID de la vista'},
-                        'nombre_proyecto': {'type': 'string', 'description': 'Nuevo nombre del proyecto'}
+                        'ruta': {'type': 'string', 'description': 'Nuevo ruta del proyecto'},
+                        'nombre_proyecto': {'type': 'string', 'description': 'Nuevo nombre del proyecto'},
+                        'descripcion': {'type': 'string'}
                     }
                 }
             }
@@ -934,15 +669,16 @@ class ProyectoPutDeleteController(Resource):
         """Endpoint para actualizar un proyecto existente."""
         data = request.get_json()
 
-        if not data or not any(k in data for k in ("id_usuario", "id_vista", "nombre_proyecto")):
+        if not data or not any(k in data for k in ("id_usuario", "ruta", "nombre_proyecto")):
             return {"error": "Se requiere al menos un campo para actualizar"}, 400
 
         try:
             actualizado = self.service.actualizar_proyecto(
                 id_proyecto=id_proyecto,
                 id_usuario=data.get("id_usuario"),
-                id_vista=data.get("id_vista"),
-                nombre_proyecto=data.get("nombre_proyecto")
+                ruta=data.get("ruta"),
+                nombre_proyecto=data.get("nombre_proyecto"),
+                descripcion=data.get("descripcion")
             )
 
             if actualizado:

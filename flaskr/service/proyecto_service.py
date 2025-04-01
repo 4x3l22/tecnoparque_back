@@ -13,22 +13,23 @@ class ProyectoService:
     def __init__(self):
         self.proyecto_dao = ProyectoDAO()
 
-    def insert_proyecto(self, id_usuario: int, id_vista: int, nombre_proyecto: str):
+    def insert_proyecto(self, id_usuario: int, ruta: str, nombre_proyecto: str, descripcion: str):
         horario_actual = obtener_hora_actual()
 
         new_project = ProyectoDTO(
             id_proyecto=0,
             id_usuario=id_usuario,
-            id_vista=id_vista,
             nombre_proyecto=nombre_proyecto,
             fecha_creacion=horario_actual,
             fecha_actualizacion=horario_actual,
-            fecha_eliminacion=None
+            fecha_eliminacion=None,
+            ruta=ruta,
+            descripcion=descripcion
         )
 
         return self.proyecto_dao.insertar_proyecto(new_project)
     
-    def actualizar_proyecto(self, id_proyecto, id_usuario=None, id_vista=None, nombre_proyecto=None):
+    def actualizar_proyecto(self, id_proyecto, id_usuario=None, nombre_proyecto=None, ruta=None, descripcion=None):
         proyecto = self.proyecto_dao.consultar_proyectoid(id_proyecto)
 
         if not proyecto:
@@ -36,11 +37,12 @@ class ProyectoService:
 
         proyecto_data = {
             'id_usuario': id_usuario if id_usuario is not None else proyecto['id_usuario'],
-            'id_vista': id_vista if id_vista is not None else proyecto['id_vista'],
             'nombre_proyecto': nombre_proyecto if nombre_proyecto is not None else proyecto['nombre_proyecto'],
             'fecha_creacion': proyecto['fecha_creacion'], 
             'fecha_actualizacion': obtener_hora_actual(),
-            'fecha_eliminacion': proyecto['fecha_eliminacion'] if proyecto['fecha_eliminacion'] else None
+            'fecha_eliminacion': proyecto['fecha_eliminacion'] if proyecto['fecha_eliminacion'] else None,
+            'ruta': proyecto['ruta'],
+            'descripcion': proyecto['descripcion']
         }
 
         return self.proyecto_dao.actualizar_proyecto(ProyectoDTO(id_proyecto=id_proyecto, **proyecto_data))
@@ -59,11 +61,12 @@ class ProyectoService:
             ProyectoDTO(
                 id_proyecto=proyecto['id_proyecto'],
                 id_usuario=proyecto['id_usuario'],
-                id_vista=proyecto['id_vista'],
                 nombre_proyecto=proyecto['nombre_proyecto'],
                 fecha_creacion=proyecto['fecha_creacion'],
                 fecha_actualizacion=proyecto['fecha_actualizacion'],
-                fecha_eliminacion=proyecto['fecha_eliminacion']
+                fecha_eliminacion=proyecto['fecha_eliminacion'],
+                ruta=proyecto['ruta'],
+                descripcion=proyecto['descripcion']
             ) for proyecto in projet
         ]
         return proyectos

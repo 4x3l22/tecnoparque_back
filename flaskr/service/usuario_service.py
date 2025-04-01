@@ -77,13 +77,20 @@ class UsuarioService:
             print("Error en get_all_users:", str(e))
             return {"error": str(e)}, 500
 
-    def login(self, correo: str, contrasena: SyntaxWarning):
+    def login(self, correo: str, contrasena: str):
         usuario = self.usuario_dao.obtener_usuario_por_correo(correo)
 
         if not usuario:
             return {"error": "Usuario no encontrado"}, 404
 
+        # Verificar que la clave "contrasena" existe en el diccionario
+        if "contrasena" not in usuario:
+            return {"error": "Error en el sistema: la contraseña no se encontró en la base de datos"}, 500
+
+        # Comparar la contraseña ingresada con la almacenada (hash)
         if not check_password_hash(usuario["contrasena"], contrasena):
             return {"error": "Contraseña incorrecta"}, 400
 
-        return {"message": "Inicio de sesión exitoso", "id": usuario["id_usuario"]}, 200
+        return {
+            "message": "success", "id": usuario["id_usuario"], "ruta": usuario["ruta"]
+        }, 200
