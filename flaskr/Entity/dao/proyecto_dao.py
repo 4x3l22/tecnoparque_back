@@ -12,7 +12,8 @@ class ProyectoDAO(BaseRepository):
             'fecha_actualizacion',
             'fecha_eliminacion',
             'ruta',
-            'descripcion'
+            'descripcion',
+            'img'
         ]
         values = (
             proyecto.id_usuario,
@@ -21,7 +22,8 @@ class ProyectoDAO(BaseRepository):
             proyecto.fecha_actualizacion,
             proyecto.fecha_eliminacion,
             proyecto.ruta,
-            proyecto.descripcion
+            proyecto.descripcion,
+            proyecto.img
         )
         return self.insert('proyectos',columns, values)
     
@@ -35,7 +37,8 @@ class ProyectoDAO(BaseRepository):
             'nombre_proyecto': proyecto.nombre_proyecto,
             'fecha_actualizacion': proyecto.fecha_actualizacion,
             'fecha_eliminacion': proyecto.fecha_eliminacion,
-            'descripcion': proyecto.descripcion
+            'descripcion': proyecto.descripcion,
+            'img': proyecto.img
         },'id_proyecto', proyecto.id_proyecto)
     
     def borrar_proyecto(self, proyecto_id):

@@ -12,3 +12,4 @@ class ProyectoDTO:
     fecha_eliminacion: datetime | None
     ruta: str
     descripcion: str | None
+    img: str | None

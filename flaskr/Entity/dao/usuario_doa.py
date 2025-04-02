@@ -43,10 +43,10 @@ class UsuarioDao(BaseRepository):
 
     def obtener_usuario_por_correo(self, correo):
         query = """
-            SELECT u.id_usuario, u.contrasena, p.ruta
+            SELECT u.id_usuario, u.contrasena, p.ruta, u.rol
             FROM tecnoparque.usuario u
             LEFT JOIN tecnoparque.proyectos p ON u.id_usuario = p.id_usuario
-            WHERE u.correo = %s
+            WHERE u.correo = %s  
         """
         params = (correo,)
 

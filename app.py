@@ -1,11 +1,41 @@
+from ftplib import FTP
+
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from flasgger import Swagger
+from werkzeug.utils import secure_filename
+
 from flaskr.apis.urls import api_blueprint
 from flaskr.service.proyecto_service import ProyectoService
 from flaskr.service.usuario_service import UsuarioService
 
 app = Flask(__name__)
+
+FTP_HOST = "ftp.ingejorgehenao.com"
+FTP_USER = "ingejorg"
+FTP_PASS = "TOlG51m3.(jF6j"
+FTP_FOLDER = "/public_html/bash_img/"
+
+# Extensiones permitidas
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def upload_to_ftp(file):
+    """Sube una imagen al servidor FTP y devuelve la URL"""
+    filename = secure_filename(file.filename)
+
+    # Conectar al servidor FTP
+    with FTP(FTP_HOST) as ftp:
+        ftp.login(FTP_USER, FTP_PASS)  # Iniciar sesión
+        ftp.cwd(FTP_FOLDER)  # Cambiar al directorio donde queremos subir la imagen
+
+        # Subir la imagen
+        ftp.storbinary(f"STOR {filename}", file)
+
+    # Devolver la URL de la imagen
+    return f"https://ingejorgehenao.com/bash_img/{filename}"
 
 # Configurar CORS para permitir solicitudes desde cualquier origen
 CORS(app)
@@ -55,23 +85,38 @@ def register():
 
 @app.route('/proyecto', methods=['POST'])
 def proyecto():
-    """Endpoint para registrar un nuevo proyecto."""
-    data = request.get_json()
+    """Endpoint para registrar un nuevo proyecto con imagen en un servidor FTP."""
     service = ProyectoService()
 
-    if not data or not all(k in data for k in ("id_usuario", "ruta", "nombre_proyecto")):
+    if 'img' not in request.files:
+        return {"error": "No se envió ninguna imagen"}, 400
+
+    file = request.files['img']
+    id_usuario = request.form.get("id_usuario")
+    ruta = request.form.get("ruta")
+    nombre_proyecto = request.form.get("nombre_proyecto")
+    descripcion = request.form.get("descripcion")
+
+    if not id_usuario or not ruta or not nombre_proyecto or not descripcion:
         return {"error": "Faltan datos requeridos"}, 400
 
-    try:
-        project_id = service.insert_proyecto(
-            id_usuario=data["id_usuario"],
-            ruta=data["ruta"],
-            nombre_proyecto=data["nombre_proyecto"],
-            descripcion=data["descripcion"]
-        )
-        return {"message": "Proyecto creado", "id": project_id}, 201
-    except Exception as e:
-        return {"error": str(e)}, 500
+    if file and allowed_file(file.filename):
+        try:
+            img_url = upload_to_ftp(file)  # Subimos la imagen al servidor FTP
+
+            project_id = service.insert_proyecto(
+                id_usuario=int(id_usuario),
+                ruta=ruta,
+                nombre_proyecto=nombre_proyecto,
+                descripcion=descripcion,
+                img=img_url
+            )
+            return {"message": "Proyecto creado", "id": project_id, "img_url": img_url}, 201
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+    return {"error": "Formato de imagen no permitido"}, 400
+
 
 @app.route('/proyectos', methods=['GET'])
 def proyectos_get():
@@ -85,6 +130,7 @@ def proyectos_get():
                 "id_usuario": project.id_usuario,
                 "ruta": project.ruta,
                 "descripcion": project.descripcion,
+                "img": project.img,
                 "nombre_proyecto": project.nombre_proyecto,
                 "fecha_creacion": project.fecha_creacion.isoformat() if project.fecha_creacion else None,
                 "fecha_actualizacion": project.fecha_actualizacion.isoformat() if project.fecha_actualizacion else None,
@@ -93,6 +139,23 @@ def proyectos_get():
             for project in projects
         ]
         return serialized_projects, 200
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+@app.route('/usuarios', methods=['GET'])
+def usuarios_get():
+    """Endpoint para obtener todos los usuarios existentes."""
+    service = UsuarioService()
+    try:
+        users = service.get_all_users()
+        serialized_users = [
+            {
+                "id_usuario": user.id_usuario,
+                "nombre": user.nombre
+            }
+            for user in users
+        ]
+        return serialized_users, 200
     except Exception as e:
         return {"error": str(e)}, 500
 

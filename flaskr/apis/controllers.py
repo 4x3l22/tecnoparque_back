@@ -484,7 +484,8 @@ class ProyectoPostGetController(Resource):
                         'id_usuario': {'type': 'integer', 'description': 'ID del usuario'},
                         'ruta': {'type': 'string', 'description': 'ruta del proyecto'},
                         'nombre_proyecto': {'type': 'string', 'description': 'Nombre del proyecto'},
-                        'descripcion': {'type': 'string'}
+                        'descripcion': {'type': 'string'},
+                        'img': {'type': 'string'},
                     },
                     'required': ['id_usuario', 'ruta', 'nombre_proyecto']
                 }
@@ -533,7 +534,8 @@ class ProyectoPostGetController(Resource):
                 id_usuario=data["id_usuario"],
                 ruta=data["ruta"],
                 nombre_proyecto=data["nombre_proyecto"],
-                descripcion=data["descripcion"]
+                descripcion=data["descripcion"],
+                img=data["img"]
             )
             return {"message": "Proyecto creado", "id": project_id}, 201
         except Exception as e:
@@ -583,6 +585,7 @@ class ProyectoPostGetController(Resource):
                     "id_proyecto": project.id_proyecto,
                     "id_usuario": project.id_usuario,
                     "ruta": project.ruta,
+                    "img": project.img,
                     "descripcion": project.descripcion,
                     "nombre_proyecto": project.nombre_proyecto,
                     "fecha_creacion": project.fecha_creacion.isoformat() if project.fecha_creacion else None,
@@ -621,7 +624,8 @@ class ProyectoPutDeleteController(Resource):
                         'id_usuario': {'type': 'integer', 'description': 'Nuevo ID del usuario'},
                         'ruta': {'type': 'string', 'description': 'Nuevo ruta del proyecto'},
                         'nombre_proyecto': {'type': 'string', 'description': 'Nuevo nombre del proyecto'},
-                        'descripcion': {'type': 'string'}
+                        'descripcion': {'type': 'string'},
+                        'img': {'type': 'string'}
                     }
                 }
             }
@@ -669,7 +673,7 @@ class ProyectoPutDeleteController(Resource):
         """Endpoint para actualizar un proyecto existente."""
         data = request.get_json()
 
-        if not data or not any(k in data for k in ("id_usuario", "ruta", "nombre_proyecto")):
+        if not data or not any(k in data for k in ("id_usuario", "ruta", "img"  , "nombre_proyecto")):
             return {"error": "Se requiere al menos un campo para actualizar"}, 400
 
         try:
@@ -678,7 +682,8 @@ class ProyectoPutDeleteController(Resource):
                 id_usuario=data.get("id_usuario"),
                 ruta=data.get("ruta"),
                 nombre_proyecto=data.get("nombre_proyecto"),
-                descripcion=data.get("descripcion")
+                descripcion=data.get("descripcion"),
+                img=data.get("img")
             )
 
             if actualizado:

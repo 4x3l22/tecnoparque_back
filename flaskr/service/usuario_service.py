@@ -92,5 +92,5 @@ class UsuarioService:
             return {"error": "Contraseña incorrecta"}, 400
 
         return {
-            "message": "success", "id": usuario["id_usuario"], "ruta": usuario["ruta"]
+            "message": "success", "id": usuario["id_usuario"], "ruta": usuario["ruta"], "rol": usuario["rol"]
         }, 200
